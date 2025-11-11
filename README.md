@@ -7,6 +7,7 @@ A simple NestJS application with TypeORM and PostgreSQL that demonstrates basic 
 - NestJS framework
 - TypeORM with PostgreSQL
 - URL shortening with click tracking
+- Optional URL expiry (short links valid only for a limited time)
 - No authentication (public endpoints)
 - Docker Compose for PostgreSQL
 
@@ -58,11 +59,13 @@ Create a shortened URL from a long URL. The short code is automatically generate
 }
 ```
 
-Optional: You can provide a custom short code:
+Optional parameters:
+- `expiresInMinutes` (number, optional): Set expiration time for the short URL (1-525600 minutes, i.e., up to 1 year)
+
 ```json
 {
   "originalUrl": "https://www.example.com/some/very/long/path",
-  "shortCode": "custom123"
+  "expiresInMinutes": 60
 }
 ```
 
@@ -73,9 +76,15 @@ Optional: You can provide a custom short code:
   "shortUrl": "http://short.ly/abc123",
   "shortCode": "abc123",
   "clicks": 0,
-  "createdAt": "2025-11-11T10:30:00.000Z"
+  "createdAt": "2025-11-11T10:30:00.000Z",
+  "expiresAt": "2025-11-11T11:30:00.000Z"
 }
 ```
+
+**Notes:**
+- If `expiresInMinutes` is not provided, the short URL will never expire
+- Once a short URL expires, attempts to access it will return a 400 Bad Request error
+- The `expiresAt` field in the response shows when the URL will expire (null if no expiry is set)
 
 **Example using curl:**
 ```bash
@@ -112,6 +121,7 @@ The application uses PostgreSQL. The database schema is automatically created an
 - `originalUrl` - The original long URL
 - `shortCode` - Unique short code for the URL
 - `clicks` - Number of times the short URL was accessed
+- `expiresAt` - Timestamp when the short URL expires (null if no expiry)
 - `createdAt` - Timestamp when created
 - `updatedAt` - Timestamp when last updated
 
