@@ -14,6 +14,7 @@ describe('UrlsService', () => {
     originalUrl: 'https://example.com',
     shortCode: 'abc123',
     clicks: 0,
+    expiresAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -107,6 +108,50 @@ describe('UrlsService', () => {
       expect(result).toEqual(mockUrl);
       expect(mockRepository.findOne).toHaveBeenCalledTimes(2);
     });
+
+    it('should create a URL with expiry when expiresInMinutes is provided', async () => {
+      const createUrlDto: CreateUrlDto = {
+        originalUrl: 'https://example.com',
+        expiresInMinutes: 60,
+      };
+
+      const futureDate = new Date();
+      futureDate.setMinutes(futureDate.getMinutes() + 60);
+
+      mockRepository.findOne.mockResolvedValue(null);
+      mockRepository.create.mockReturnValue(mockUrl);
+      mockRepository.save.mockResolvedValue(mockUrl);
+
+      await service.create(createUrlDto);
+
+      expect(mockRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          originalUrl: createUrlDto.originalUrl,
+          shortCode: expect.any(String),
+          expiresAt: expect.any(Date),
+        }),
+      );
+    });
+
+    it('should create a URL without expiry when expiresInMinutes is not provided', async () => {
+      const createUrlDto: CreateUrlDto = {
+        originalUrl: 'https://example.com',
+      };
+
+      mockRepository.findOne.mockResolvedValue(null);
+      mockRepository.create.mockReturnValue(mockUrl);
+      mockRepository.save.mockResolvedValue(mockUrl);
+
+      await service.create(createUrlDto);
+
+      expect(mockRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          originalUrl: createUrlDto.originalUrl,
+          shortCode: expect.any(String),
+          expiresAt: null,
+        }),
+      );
+    });
   });
 
   describe('findAll', () => {
@@ -183,6 +228,35 @@ describe('UrlsService', () => {
         BadRequestException,
       );
     });
+
+    it('should throw BadRequestException when URL has expired', async () => {
+      const expiredUrl = {
+        ...mockUrl,
+        expiresAt: new Date(Date.now() - 1000), // 1 second ago
+      };
+      mockRepository.findOne.mockResolvedValue(expiredUrl);
+
+      await expect(service.findByShortCode('abc123')).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.findByShortCode('abc123')).rejects.toThrow(
+        'This short URL has expired',
+      );
+    });
+
+    it('should not throw error for non-expired URL', async () => {
+      const futureUrl = {
+        ...mockUrl,
+        expiresAt: new Date(Date.now() + 60000), // 1 minute from now
+      };
+      mockRepository.findOne.mockResolvedValue(futureUrl);
+      mockRepository.save.mockResolvedValue({ ...futureUrl, clicks: 1 });
+
+      const result = await service.findByShortCode('abc123');
+
+      expect(result).toBeDefined();
+      expect(mockRepository.save).toHaveBeenCalled();
+    });
   });
 
   describe('findByShortCodeInfo', () => {
@@ -210,6 +284,21 @@ describe('UrlsService', () => {
     it('should throw BadRequestException for empty short code', async () => {
       await expect(service.findByShortCodeInfo('')).rejects.toThrow(
         BadRequestException,
+      );
+    });
+
+    it('should throw BadRequestException when URL has expired', async () => {
+      const expiredUrl = {
+        ...mockUrl,
+        expiresAt: new Date(Date.now() - 1000), // 1 second ago
+      };
+      mockRepository.findOne.mockResolvedValue(expiredUrl);
+
+      await expect(service.findByShortCodeInfo('abc123')).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.findByShortCodeInfo('abc123')).rejects.toThrow(
+        'This short URL has expired',
       );
     });
   });

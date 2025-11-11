@@ -16,6 +16,7 @@ describe('UrlsController', () => {
     originalUrl: 'https://example.com',
     shortCode: 'abc123',
     clicks: 0,
+    expiresAt: null,
     createdAt: new Date('2025-01-01'),
     updatedAt: new Date('2025-01-01'),
   };
@@ -70,6 +71,7 @@ describe('UrlsController', () => {
         shortCode: mockUrl.shortCode,
         clicks: mockUrl.clicks,
         createdAt: mockUrl.createdAt,
+        expiresAt: mockUrl.expiresAt,
       });
       expect(service.create).toHaveBeenCalledWith(createUrlDto);
     });
