@@ -97,19 +97,23 @@ curl -X POST http://localhost:3000/urls \
 
 - `GET /urls` - Get all URLs
 
-- `GET /urls/:id` - Get a specific URL by ID
+- `GET /urls/:shortCode` - Get URL information by short code (does not increment clicks)
+  - Example: `http://localhost:3000/urls/abc123`
+  - Returns URL details including `originalUrl`, `shortCode`, `clicks`, `expiresAt`, etc.
+  - Returns 400 Bad Request if the URL has expired
 
 - `GET /urls/redirect/:shortCode` - Redirect to original URL (increments click counter)
   - Example: `http://localhost:3000/urls/redirect/abc123`
+  - Returns 400 Bad Request if the URL has expired
 
-- `PATCH /urls/:id` - Update a URL
+- `PATCH /urls/:id` - Update a URL by ID
   ```json
   {
     "originalUrl": "https://newurl.com"
   }
   ```
 
-- `DELETE /urls/:id` - Delete a URL
+- `DELETE /urls/:id` - Delete a URL by ID
 
 ## Database
 
