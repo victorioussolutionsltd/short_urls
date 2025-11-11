@@ -4,7 +4,7 @@ import { Transform } from 'class-transformer';
 export class CreateUrlDto {
   @IsNotEmpty({ message: 'URL is required' })
   @IsString({ message: 'URL must be a string' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsUrl(
     {
       require_protocol: true,
