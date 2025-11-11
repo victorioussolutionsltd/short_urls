@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUrlDto } from './dto/create-url.dto';
@@ -49,7 +49,38 @@ export class UrlsService {
     return this.generateShortCode(8);
   }
 
+  /**
+   * Validate and normalize URL
+   */
+  private validateUrl(url: string): void {
+    try {
+      const parsedUrl = new URL(url);
+      
+      // Additional validation: ensure URL has valid protocol
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        throw new BadRequestException(
+          'Invalid URL protocol. Only http and https are allowed'
+        );
+      }
+      
+      // Ensure URL has a valid hostname
+      if (!parsedUrl.hostname || parsedUrl.hostname === '') {
+        throw new BadRequestException('URL must have a valid hostname');
+      }
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        'Invalid URL format. Please provide a valid URL'
+      );
+    }
+  }
+
   async create(createUrlDto: CreateUrlDto): Promise<Url> {
+    // Validate the URL format
+    this.validateUrl(createUrlDto.originalUrl);
+    
     // Always generate a unique short code
     const shortCode = await this.generateUniqueShortCode();
 
@@ -73,6 +104,11 @@ export class UrlsService {
   }
 
   async findByShortCode(shortCode: string): Promise<Url> {
+    // Validate shortCode is not empty
+    if (!shortCode || shortCode.trim() === '') {
+      throw new BadRequestException('Short code cannot be empty');
+    }
+    
     const url = await this.urlsRepository.findOne({ where: { shortCode } });
     if (!url) {
       throw new NotFoundException(`URL with short code ${shortCode} not found`);

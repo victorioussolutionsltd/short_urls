@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Res,
+  BadRequestException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { UrlsService } from './urls.service';
@@ -39,7 +40,11 @@ export class UrlsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.urlsService.findOne(+id);
+    const numericId = Number.parseInt(id, 10);
+    if (Number.isNaN(numericId) || numericId <= 0) {
+      throw new BadRequestException('Invalid ID format');
+    }
+    return this.urlsService.findOne(numericId);
   }
 
   @Get('redirect/:shortCode')
@@ -47,17 +52,30 @@ export class UrlsController {
     @Param('shortCode') shortCode: string,
     @Res() res: Response,
   ) {
-    const url = await this.urlsService.findByShortCode(shortCode);
+    // Validate shortCode is not empty
+    if (!shortCode || shortCode.trim() === '') {
+      throw new BadRequestException('Short code cannot be empty');
+    }
+    
+    const url = await this.urlsService.findByShortCode(shortCode.trim());
     return res.redirect(url.originalUrl);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUrlDto: UpdateUrlDto) {
-    return this.urlsService.update(+id, updateUrlDto);
+    const numericId = Number.parseInt(id, 10);
+    if (Number.isNaN(numericId) || numericId <= 0) {
+      throw new BadRequestException('Invalid ID format');
+    }
+    return this.urlsService.update(numericId, updateUrlDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.urlsService.remove(+id);
+    const numericId = Number.parseInt(id, 10);
+    if (Number.isNaN(numericId) || numericId <= 0) {
+      throw new BadRequestException('Invalid ID format');
+    }
+    return this.urlsService.remove(numericId);
   }
 }

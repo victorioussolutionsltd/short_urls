@@ -1,0 +1,82 @@
+### Test valid URL
+POST http://localhost:3000/urls
+Content-Type: application/json
+
+{
+  "originalUrl": "https://www.example.com"
+}
+
+### Test empty URL
+POST http://localhost:3000/urls
+Content-Type: application/json
+
+{
+  "originalUrl": ""
+}
+
+### Test whitespace-only URL
+POST http://localhost:3000/urls
+Content-Type: application/json
+
+{
+  "originalUrl": "   "
+}
+
+### Test malformed URL (no protocol)
+POST http://localhost:3000/urls
+Content-Type: application/json
+
+{
+  "originalUrl": "www.example.com"
+}
+
+### Test malformed URL (invalid protocol)
+POST http://localhost:3000/urls
+Content-Type: application/json
+
+{
+  "originalUrl": "ftp://example.com"
+}
+
+### Test missing URL field
+POST http://localhost:3000/urls
+Content-Type: application/json
+
+{
+}
+
+### Test null URL
+POST http://localhost:3000/urls
+Content-Type: application/json
+
+{
+  "originalUrl": null
+}
+
+### Test URL too long (over 2048 chars)
+POST http://localhost:3000/urls
+Content-Type: application/json
+
+{
+  "originalUrl": "https://example.com/very-long-path-that-exceeds-the-maximum-allowed-length-of-2048-characters-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}
+
+### Test invalid ID format (GET)
+GET http://localhost:3000/urls/abc
+
+### Test invalid ID format (DELETE)
+DELETE http://localhost:3000/urls/abc
+
+### Test invalid ID format (PATCH)
+PATCH http://localhost:3000/urls/abc
+Content-Type: application/json
+
+{
+  "originalUrl": "https://updated.com"
+}
+
+### Test redirect with empty short code (will fail due to route)
+GET http://localhost:3000/urls/redirect/
+
+### Test non-existent short code
+GET http://localhost:3000/urls/redirect/INVALID
