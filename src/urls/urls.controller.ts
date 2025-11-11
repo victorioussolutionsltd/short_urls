@@ -38,13 +38,14 @@ export class UrlsController {
     return this.urlsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    const numericId = Number.parseInt(id, 10);
-    if (Number.isNaN(numericId) || numericId <= 0) {
-      throw new BadRequestException('Invalid ID format');
+  @Get(':shortCode')
+  async findByShortCode(@Param('shortCode') shortCode: string) {
+    // Validate shortCode is not empty
+    if (!shortCode || shortCode.trim() === '') {
+      throw new BadRequestException('Short code cannot be empty');
     }
-    return this.urlsService.findOne(numericId);
+    
+    return this.urlsService.findByShortCodeInfo(shortCode.trim());
   }
 
   @Get('redirect/:shortCode')

@@ -121,6 +121,21 @@ export class UrlsService {
     return url;
   }
 
+  async findByShortCodeInfo(shortCode: string): Promise<Url> {
+    // Validate shortCode is not empty
+    if (!shortCode || shortCode.trim() === '') {
+      throw new BadRequestException('Short code cannot be empty');
+    }
+    
+    const url = await this.urlsRepository.findOne({ where: { shortCode } });
+    if (!url) {
+      throw new NotFoundException(`URL with short code ${shortCode} not found`);
+    }
+    
+    // Return the URL record without incrementing clicks
+    return url;
+  }
+
   async update(id: number, updateUrlDto: UpdateUrlDto): Promise<Url> {
     const url = await this.findOne(id);
     Object.assign(url, updateUrlDto);
