@@ -4,4 +4,5 @@ export class UrlResponseDto {
   shortCode: string;
   clicks: number;
   createdAt: Date;
+  expiresAt?: Date;
 }

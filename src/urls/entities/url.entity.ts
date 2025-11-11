@@ -14,6 +14,9 @@ export class Url {
   @Column({ default: 0 })
   clicks: number;
 
+  @Column({ type: 'timestamp', nullable: true })
+  expiresAt: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 

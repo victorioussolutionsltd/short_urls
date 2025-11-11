@@ -135,4 +135,83 @@ describe('CreateUrlDto', () => {
     const errors = await validate(dto);
     expect(errors.length).toBe(0);
   });
+
+  it('should validate URL with optional expiresInMinutes', async () => {
+    const dto = plainToInstance(CreateUrlDto, {
+      originalUrl: 'https://example.com',
+      expiresInMinutes: 60,
+    });
+
+    const errors = await validate(dto);
+    expect(errors.length).toBe(0);
+  });
+
+  it('should validate URL without expiresInMinutes', async () => {
+    const dto = plainToInstance(CreateUrlDto, {
+      originalUrl: 'https://example.com',
+    });
+
+    const errors = await validate(dto);
+    expect(errors.length).toBe(0);
+  });
+
+  it('should fail validation for expiresInMinutes less than 1', async () => {
+    const dto = plainToInstance(CreateUrlDto, {
+      originalUrl: 'https://example.com',
+      expiresInMinutes: 0,
+    });
+
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0].property).toBe('expiresInMinutes');
+    expect(errors[0].constraints).toHaveProperty('min');
+  });
+
+  it('should fail validation for negative expiresInMinutes', async () => {
+    const dto = plainToInstance(CreateUrlDto, {
+      originalUrl: 'https://example.com',
+      expiresInMinutes: -10,
+    });
+
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0].property).toBe('expiresInMinutes');
+  });
+
+  it('should fail validation for expiresInMinutes exceeding maximum', async () => {
+    const dto = plainToInstance(CreateUrlDto, {
+      originalUrl: 'https://example.com',
+      expiresInMinutes: 525601, // More than 1 year
+    });
+
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0].property).toBe('expiresInMinutes');
+    expect(errors[0].constraints).toHaveProperty('max');
+  });
+
+  it('should fail validation for non-integer expiresInMinutes', async () => {
+    const dto = plainToInstance(CreateUrlDto, {
+      originalUrl: 'https://example.com',
+      expiresInMinutes: 10.5,
+    });
+
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0].property).toBe('expiresInMinutes');
+    expect(errors[0].constraints).toHaveProperty('isInt');
+  });
+
+  it('should convert string expiresInMinutes to number', async () => {
+    const dto = plainToInstance(CreateUrlDto, {
+      originalUrl: 'https://example.com',
+      expiresInMinutes: '60',
+    });
+
+    expect(typeof dto.expiresInMinutes).toBe('number');
+    expect(dto.expiresInMinutes).toBe(60);
+
+    const errors = await validate(dto);
+    expect(errors.length).toBe(0);
+  });
 });

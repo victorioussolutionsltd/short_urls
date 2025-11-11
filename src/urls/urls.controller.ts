@@ -30,6 +30,7 @@ export class UrlsController {
       shortCode: url.shortCode,
       clicks: url.clicks,
       createdAt: url.createdAt,
+      expiresAt: url.expiresAt,
     };
   }
 

@@ -84,9 +84,17 @@ export class UrlsService {
     // Always generate a unique short code
     const shortCode = await this.generateUniqueShortCode();
 
+    // Calculate expiration date if expiresInMinutes is provided
+    let expiresAt: Date | null = null;
+    if (createUrlDto.expiresInMinutes) {
+      expiresAt = new Date();
+      expiresAt.setMinutes(expiresAt.getMinutes() + createUrlDto.expiresInMinutes);
+    }
+
     const url = this.urlsRepository.create({
       originalUrl: createUrlDto.originalUrl,
       shortCode,
+      expiresAt,
     });
     return this.urlsRepository.save(url);
   }
@@ -114,6 +122,11 @@ export class UrlsService {
       throw new NotFoundException(`URL with short code ${shortCode} not found`);
     }
     
+    // Check if URL has expired
+    if (url.expiresAt && new Date() > url.expiresAt) {
+      throw new BadRequestException('This short URL has expired');
+    }
+    
     // Increment click counter
     url.clicks += 1;
     await this.urlsRepository.save(url);
@@ -130,6 +143,11 @@ export class UrlsService {
     const url = await this.urlsRepository.findOne({ where: { shortCode } });
     if (!url) {
       throw new NotFoundException(`URL with short code ${shortCode} not found`);
+    }
+    
+    // Check if URL has expired (but still return info)
+    if (url.expiresAt && new Date() > url.expiresAt) {
+      throw new BadRequestException('This short URL has expired');
     }
     
     // Return the URL record without incrementing clicks

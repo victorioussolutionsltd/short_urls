@@ -1,5 +1,5 @@
-import { IsNotEmpty, IsUrl, IsString, MaxLength } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { IsNotEmpty, IsUrl, IsString, MaxLength, IsOptional, IsInt, Min, Max } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 export class CreateUrlDto {
   @IsNotEmpty({ message: 'URL is required' })
@@ -15,4 +15,11 @@ export class CreateUrlDto {
   )
   @MaxLength(2048, { message: 'URL is too long (maximum 2048 characters)' })
   originalUrl: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'Expiry time must be an integer' })
+  @Min(1, { message: 'Expiry time must be at least 1 minute' })
+  @Max(525600, { message: 'Expiry time must not exceed 525600 minutes (1 year)' })
+  expiresInMinutes?: number;
 }
