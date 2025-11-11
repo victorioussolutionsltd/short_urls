@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUrlDto } from './dto/create-url.dto';
@@ -50,20 +50,11 @@ export class UrlsService {
   }
 
   async create(createUrlDto: CreateUrlDto): Promise<Url> {
-    // Generate short code if not provided
-    const shortCode = createUrlDto.shortCode || await this.generateUniqueShortCode();
-
-    // Check if short code already exists
-    const existingUrl = await this.urlsRepository.findOne({
-      where: { shortCode },
-    });
-
-    if (existingUrl) {
-      throw new ConflictException('Short code already exists');
-    }
+    // Always generate a unique short code
+    const shortCode = await this.generateUniqueShortCode();
 
     const url = this.urlsRepository.create({
-      ...createUrlDto,
+      originalUrl: createUrlDto.originalUrl,
       shortCode,
     });
     return this.urlsRepository.save(url);

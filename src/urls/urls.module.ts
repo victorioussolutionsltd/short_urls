@@ -8,5 +8,6 @@ import { Url } from './entities/url.entity';
   imports: [TypeOrmModule.forFeature([Url])],
   controllers: [UrlsController],
   providers: [UrlsService],
+  exports: [UrlsService],
 })
 export class UrlsModule {}
