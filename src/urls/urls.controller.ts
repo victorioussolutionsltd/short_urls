@@ -12,14 +12,24 @@ import { Response } from 'express';
 import { UrlsService } from './urls.service';
 import { CreateUrlDto } from './dto/create-url.dto';
 import { UpdateUrlDto } from './dto/update-url.dto';
+import { UrlResponseDto } from './dto/url-response.dto';
 
 @Controller('urls')
 export class UrlsController {
   constructor(private readonly urlsService: UrlsService) {}
 
   @Post()
-  create(@Body() createUrlDto: CreateUrlDto) {
-    return this.urlsService.create(createUrlDto);
+  async create(@Body() createUrlDto: CreateUrlDto): Promise<UrlResponseDto> {
+    const url = await this.urlsService.create(createUrlDto);
+    const baseUrl = process.env.BASE_URL || 'http://short.ly';
+    
+    return {
+      originalUrl: url.originalUrl,
+      shortUrl: `${baseUrl}/${url.shortCode}`,
+      shortCode: url.shortCode,
+      clicks: url.clicks,
+      createdAt: url.createdAt,
+    };
   }
 
   @Get()

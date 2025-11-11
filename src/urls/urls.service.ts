@@ -9,20 +9,63 @@ import { Url } from './entities/url.entity';
 export class UrlsService {
   constructor(
     @InjectRepository(Url)
-    private urlsRepository: Repository<Url>,
+    private readonly urlsRepository: Repository<Url>,
   ) {}
 
+  /**
+   * Generate a random short code
+   */
+  private generateShortCode(length: number = 6): string {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+  }
+
+  /**
+   * Generate a unique short code that doesn't exist in the database
+   */
+  private async generateUniqueShortCode(): Promise<string> {
+    let shortCode: string;
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    do {
+      shortCode = this.generateShortCode();
+      const existing = await this.urlsRepository.findOne({
+        where: { shortCode },
+      });
+      
+      if (!existing) {
+        return shortCode;
+      }
+      
+      attempts++;
+    } while (attempts < maxAttempts);
+
+    // If we can't find a unique code after max attempts, use a longer code
+    return this.generateShortCode(8);
+  }
+
   async create(createUrlDto: CreateUrlDto): Promise<Url> {
+    // Generate short code if not provided
+    const shortCode = createUrlDto.shortCode || await this.generateUniqueShortCode();
+
     // Check if short code already exists
     const existingUrl = await this.urlsRepository.findOne({
-      where: { shortCode: createUrlDto.shortCode },
+      where: { shortCode },
     });
 
     if (existingUrl) {
       throw new ConflictException('Short code already exists');
     }
 
-    const url = this.urlsRepository.create(createUrlDto);
+    const url = this.urlsRepository.create({
+      ...createUrlDto,
+      shortCode,
+    });
     return this.urlsRepository.save(url);
   }
 

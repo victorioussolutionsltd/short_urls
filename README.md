@@ -45,21 +45,53 @@ The application will be available at `http://localhost:3000`
 
 ## API Endpoints
 
-### URLs
+### Create Short URL
 
-- `POST /urls` - Create a new short URL
-  ```json
-  {
-    "originalUrl": "https://example.com/very/long/url",
-    "shortCode": "abc123"
-  }
-  ```
+**POST** `/urls`
+
+Create a shortened URL from a long URL. The short code is automatically generated if not provided.
+
+**Request Body:**
+```json
+{
+  "originalUrl": "https://www.example.com/some/very/long/path"
+}
+```
+
+Optional: You can provide a custom short code:
+```json
+{
+  "originalUrl": "https://www.example.com/some/very/long/path",
+  "shortCode": "custom123"
+}
+```
+
+**Response:**
+```json
+{
+  "originalUrl": "https://www.example.com/some/very/long/path",
+  "shortUrl": "http://short.ly/abc123",
+  "shortCode": "abc123",
+  "clicks": 0,
+  "createdAt": "2025-11-11T10:30:00.000Z"
+}
+```
+
+**Example using curl:**
+```bash
+curl -X POST http://localhost:3000/urls \
+  -H "Content-Type: application/json" \
+  -d '{"originalUrl": "https://www.example.com/some/very/long/path"}'
+```
+
+### Other Endpoints
 
 - `GET /urls` - Get all URLs
 
 - `GET /urls/:id` - Get a specific URL by ID
 
 - `GET /urls/redirect/:shortCode` - Redirect to original URL (increments click counter)
+  - Example: `http://localhost:3000/urls/redirect/abc123`
 
 - `PATCH /urls/:id` - Update a URL
   ```json
