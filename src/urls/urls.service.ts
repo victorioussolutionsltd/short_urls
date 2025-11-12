@@ -13,27 +13,43 @@ export class UrlsService {
   ) {}
 
   /**
-   * Generate a random short code
+   * Generate a short code based on URL and unique ID using hash
    */
-  private generateShortCode(length: number = 6): string {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * characters.length));
+  private generateShortCode(url: string, uniqueId: number): string {
+    const crypto = require('node:crypto');
+    
+    // Combine URL and unique ID
+    const input = `${url}-${uniqueId}`;
+    
+    // Create hash
+    const hash = crypto.createHash('sha256').update(input).digest('hex');
+    
+    // Take first 6 characters and convert to base62-like format
+    const base62 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let shortCode = '';
+    
+    // Use hash bytes to generate short code
+    for (let i = 0; i < 6; i++) {
+      const byte = Number.parseInt(hash.substr(i * 2, 2), 16);
+      shortCode += base62[byte % base62.length];
     }
-    return result;
+    
+    return shortCode;
   }
 
   /**
    * Generate a unique short code that doesn't exist in the database
    */
-  private async generateUniqueShortCode(): Promise<string> {
+  private async generateUniqueShortCode(url: string): Promise<string> {
     let shortCode: string;
     let attempts = 0;
     const maxAttempts = 10;
 
     do {
-      shortCode = this.generateShortCode();
+      // Use timestamp as unique ID for each attempt
+      const uniqueId = Date.now() + attempts;
+      shortCode = this.generateShortCode(url, uniqueId);
+      
       const existing = await this.urlsRepository.findOne({
         where: { shortCode },
       });
@@ -45,8 +61,9 @@ export class UrlsService {
       attempts++;
     } while (attempts < maxAttempts);
 
-    // If we can't find a unique code after max attempts, use a longer code
-    return this.generateShortCode(8);
+    // If we can't find a unique code after max attempts, add timestamp suffix
+    const fallbackId = Date.now() + Math.floor(Math.random() * 1000);
+    return this.generateShortCode(url, fallbackId);
   }
 
   /**
@@ -81,8 +98,8 @@ export class UrlsService {
     // Validate the URL format
     this.validateUrl(createUrlDto.originalUrl);
     
-    // Always generate a unique short code
-    const shortCode = await this.generateUniqueShortCode();
+    // Generate a unique short code based on the URL
+    const shortCode = await this.generateUniqueShortCode(createUrlDto.originalUrl);
 
     // Calculate expiration date if expiresInMinutes is provided
     let expiresAt: Date | null = null;
